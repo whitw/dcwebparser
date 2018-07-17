@@ -1,7 +1,6 @@
 import os
 import sys
 import urllib.request
-import dcparser
 from bs4 import BeautifulSoup
 
 hdr = {
@@ -21,11 +20,11 @@ if(__name__ == "__main__"):
         no = sys.argv[2]
         print("gallery = {0},no = {1}".format(gallery, no))
     else:
-        gallery = 'jumper'
+        gallery = 'programming'
         no = '1'
 
 
-def getlist(gallery="jumper", page="1"):
+def getlist(gallery='programming', page="1"):
     dclist = 'http://m.dcinside.com/list.php?id='
     listurl = dclist + gallery + '&page=' + page
     req = urllib.request.Request(listurl, headers=hdr)
@@ -51,15 +50,26 @@ def getlist(gallery="jumper", page="1"):
         if(msg['comment'] == ''):
             msg['comment'] = '0'
         msg['nick'] = li.find("span", {"class": "name"}).get_text()
+        class_info = li.find("span", {"class": "info"})
+        msg['date'] = class_info.find_all("span")[2].get_text()
+        msg['view'] = class_info.find_all("span")[4].find('span').get_text()
+    # msg['vote_up'] = class_info.find_all("span")[6].find('span').get_text()
+    # msg['id'] = li.find("span", {"class": "block_id"}).get_text()
 
-        print("(%s)%s[%s] by %s" % (msg['no'],
-                                    msg['title'], msg['comment'], msg['nick']))
+        print("(%s)%s[%s](%s) by %s on %s(v_up:%s)" % (
+            msg['no'],
+            msg['title'],
+            msg['comment'],
+            msg['view'],
+            msg['nick'],
+            msg['date'],
+            msg['vote_up']))
 
         result.append(msg)
     return result
 
 
-def getpage(gallery="jumper", no="1290489", page="1"):
+def getpage(gallery="programming", no="812899", page="5"):
     dcpage = 'http://m.dcinside.com/view.php?id='
     pageurl = dcpage + gallery + '&no=' + no + '&page=' + page
     req = urllib.request.Request(pageurl, headers=hdr)
@@ -81,7 +91,7 @@ def getpage(gallery="jumper", no="1290489", page="1"):
         result['nick'] = head.get_text().strip()
         result['body'] = body.get_text().strip()
 
-        print("%s by %s\n%s" % (title, result['nick'], result['body']))
+        # print("%s by %s\n%s" % (title, result['nick'], result['body']))
 
         return result
 
@@ -96,6 +106,6 @@ else:
     # ('body = \n{0}'.format(result['body'].get_text().strip()))
     pass
 result = getlist(gallery, '1')
-for data in result:
-    getpage(gallery, data['no'], '1')
-    print('\n\n')
+# for data in result:
+# getpage(gallery, data['no'], '1')
+# print('\n\n')
