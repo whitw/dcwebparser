@@ -7,8 +7,8 @@ from hdr import header
 
 def getpage(gallery="programming", no="812899", page="5"):
     dcpage = 'http://m.dcinside.com/view.php?id='
-    pageurl = dcpage + gallery + '&no=' + no + '&page=' + page
-    req = urllib.request.Request(pageurl, headers=hdr)
+    pageurl = dcpage + gallery + '&no=' + str(no) + '&page=' + str(page)
+    req = urllib.request.Request(pageurl, headers=header)
     data = urllib.request.urlopen(req).read()
     # with open("result.txt", "wt") as file:
     #    file.write(data.decode('utf8'))
@@ -30,5 +30,5 @@ def getpage(gallery="programming", no="812899", page="5"):
         return result
 
 
-def printpage(result_page):
-    print("%s by %s\n%s" % (title, result['nick'], result['body']))
+def printpage(result):
+    print("%s by %s\n%s" % (result['title'], result['nick'], result['body']))

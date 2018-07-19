@@ -4,8 +4,10 @@ import urllib.request
 from bs4 import BeautifulSoup
 from hdr import header
 
-def readlist(list_page='http://m.dcinside.com/list.php?id=programming&=page=1'):
-    req = urllib.request.Request(listurl, headers=header)
+
+def readlist(list_page='http://m.dcinside.com/'
+             + 'list.php?id=programming&=page=1'):
+    req = urllib.request.Request(list_page, headers=header)
     data = urllib.request.urlopen(req).read()
     soup = BeautifulSoup(data, "html.parser")
     link = soup.find("div", {"id": "search_layer"})
@@ -33,13 +35,17 @@ def readlist(list_page='http://m.dcinside.com/list.php?id=programming&=page=1'):
         msg['id'] = li.find("span", {"class": "block_info"}).get_text()
         result.append(msg)
     return result
-        
-    
-def searchlist(gallery='programming', search_type=0,keyword='', view_recommend=False):
-    list_search_type = ['search_all','search_subject','search_memo','search_name','search_subject_memo']
+
+
+def searchlist(gallery='programming', search_type=0,
+               keyword='', view_recommend=False):
+    if(isnumeric(search_type) is False):
+        return None
+    list_search_type = ['search_all', 'search_subject', 'search_memo',
+                        'search_name', 'search_subject_memo']
     dclist = 'http://m.dcinside.com/list.php?id='
     listurl = dclist + gallery + '&page=' + page
-    + '&s_type=' + list_search_type[search_type] + '&s_keyword=' + keyword
+    + '&s_type=' + list_search_type[int(search_type)] + '&s_keyword=' + keyword
     if(view_recommend):
         listurl += '&exception_mode=recommend'
     return readlist(listurl)
@@ -47,10 +53,11 @@ def searchlist(gallery='programming', search_type=0,keyword='', view_recommend=F
 
 def getlist(gallery='programming', page="1"):
     dclist = 'http://m.dcinside.com/list.php?id='
-    listurl = dclist + gallery + '&page=' + page
+    listurl = dclist + gallery + '&page=' + str(page)
     return readlist(listurl)
 
-def printlist(result_list)
+
+def printlist(result_list):
     for msg in result_list:
         print("(%s)%s[%s](%s) by %s on %s(추천|%s)" % (
             msg['no'],
