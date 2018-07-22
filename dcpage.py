@@ -5,20 +5,20 @@ from bs4 import BeautifulSoup
 from hdr import header
 
 
-def getpage(gallery="programming", no="812899", page="5"):
+def get(gallery="programming", no="812899", page="5"):
     dcpage = 'http://m.dcinside.com/view.php?id='
     pageurl = dcpage + gallery + '&no=' + str(no) + '&page=' + str(page)
     req = urllib.request.Request(pageurl, headers=header)
     data = urllib.request.urlopen(req).read()
-    # with open("result.txt", "wt") as file:
-    #    file.write(data.decode('utf8'))
+    with open("result_page.txt", "wt") as file:
+        file.write(pageurl + '\n')
+        file.write(data.decode('utf8'))
     soup = BeautifulSoup(data, "html.parser")
-
     link = soup.find("div", {"class": "gall_content"})
     result = {"title": None, "nick": None,
               "date": None, "view": None, "comment": None, "body": None}
     if(link is None):
-        return result
+        return None
     else:
         title = link.find("span", {"class": "tit_view"}).get_text()
         head = link.find("span", {"class": "info_edit"})
@@ -30,5 +30,10 @@ def getpage(gallery="programming", no="812899", page="5"):
         return result
 
 
-def printpage(result):
-    print("%s by %s\n%s" % (result['title'], result['nick'], result['body']))
+def show(result):
+    if(result is not None and result['title'] is not None):
+        print("%s by %s\n%s" % (result['title'],
+                                result['nick'],
+                                result['body']))
+    else:
+        print('Unable to read page! May be deleted')

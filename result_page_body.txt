@@ -1,0 +1,29 @@
+				<div class="view_main">
+					
+															<p class="contents_img">
+
+					</p>
+
+				 	<div id="memo_img">
+
+					<table style="table-layout: fixed; width: 100%"><tbody><tr><td>
+					
+					<p><br /></p><p style="text-align: left;"><img src="http://dcimg8.dcinside.co.kr/viewimage.php?id=3eb1d13f&amp;no=24b0d769e1d32ca73cef83fa11d02831a8a78790708c2166b82f7ce95f9a30a889c69a0cefd7c231dddb75570244de75fe91e57f4a33e04816996249a161a5" class="txc-image" style="clear:none;float:none;" alt="image" /></p><p><br /></p><p style="text-align: left;"><img src="http://dcimg8.dcinside.co.kr/viewimage.php?id=3eb1d13f&amp;no=24b0d769e1d32ca73cef83fa11d02831a8a78790708c2166b82f7ce95f9a30a889c69a0cefd7c231dddb75570244de75fe91e5214d35e7494b993f49a161a5" class="txc-image" style="clear:none;float:none;" alt="image" /></p><p><br /></p><p style="text-align: left;"><img src="http://dcimg8.dcinside.co.kr/viewimage.php?id=3eb1d13f&amp;no=24b0d769e1d32ca73cef83fa11d02831a8a78790708c2166b82f7ce95f9a30a889c69a0cefd7c231dddb75570244de75fe91e5261a33e24c47ca3249a161a5" class="txc-image" style="clear:none;float:none;" alt="image" /></p><br>
+											  <div style="text-align:center;">
+												<script src=" http://cdn-aitg.widerplanet.com/js/adr.js" type="text/javascript"></script>
+												<script type="text/javascript">
+												WiderPlanetAdRenderer.writeAd({
+												    type : "script",
+												    passback : "PASSBACK_URL ",
+												    category : "PAGE_CATEGORY",
+												    width : "320",
+												    height : "100",
+												    zoneid : "23911"
+												});
+												</script> 
+											   </div><br><p style="text-align: left;"><br /></p><p style="text-align: left;"><br /></p><p style="text-align: left;">완벽한 타격만 8장 ㅗㅜㅑ</p><p><br /></p>
+					</td></tr></tbody></table>
+					</div>
+
+					
+				</div>

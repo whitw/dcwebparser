@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, minimum-scale=1.0, user-scalable=yes" />
+<meta name="content-language" content="kr">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
+<meta name="google-site-verification" content="8_SyZg2Wg3LNnCmFXzETp7ld4yjZB8ny17m8QsYsLwk" />
+<link rel="stylesheet" href="/css/new_gall.css?v=170620">
+<link rel="stylesheet" href="/css/old_gall.css?v=170726">
+<link rel="stylesheet" href="/css/jquery_alerts.css" />
+<link rel="shortcut icon" href="http://nstatic.dcinside.com/mobile/images/dcinside_icon.png">
+<link rel="apple-touch-icon-precomposed" href="http://nstatic.dcinside.com/mobile/images/dcinside_icon.png">
+<link rel="stylesheet" href="http://nstatic.dcinside.com/dgn/m_newdc/winnerta/css/wnt_style_160406.css">
+<!--
+<!–[if lt IE 9]> 
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]–>
+-->
+<script src="/js/jquery-3.1.1.min.js"></script>
+<script src="/js/md5.js"></script>
+<script src="/js/common_new.js"></script>
+<script src="/js/kakaoLink2.js"></script>
+<script src="/js/kakao-1.0.19.js"></script>
+<script src="/js/jquery.alerts.js"></script>
+<!-- <script src="/winnerta/js/site.js"></script> -->
+
+<script type="text/javascript">
+document.domain="dcinside.com";
+</script>
+ <script type='text/javascript'>
+   /*
+   window.onload = function() { //u+광고 호출
+    $("#LG_U_AD").html(str);
+    };
+    */
+
+   // num = Math.round(Math.random()*9);
+  if ( false && navigator.userAgent.toLowerCase().indexOf('opera') != -1)  {  //오페라용
+  }else{
+ window.onload = function() {   // 광고 대체 아이프레임 (하단광고) 
+
+    // var ad_ran=  $('#ad_inmobi').html().length;
+    //var ad_chk=  $(".inmobi-ad").contents().length;
+
+  /*
+     if(ad_chk <= 1) {
+
+    $("#ad_inmobi").each(function() {
+           var str="<div style='margin-top:0px;margin-bottom:0px;text-align:center;'><iframe  src='http://m.dcinside.com/ad/ad_form_3b.html' name='mobile_ad'  id='mobile_ad'  frameborder='0' marginwidth='0'  marginheight='0'   width='320px' height='50px' scrolling='no' ></iframe></div>";
+           $("#ad_trans").html(str);
+           });
+         }
+    */
+     };
+  }
+ </script>
+
+<meta http-equiv='Content-Type' content='text/html; charset=utf-8' />
+				   <script type='text/javascript'>
+					 alert('해당 갤러리는 존재하지 않습니다.');
+					 history.go(-1);
+				   </script>
+				 
