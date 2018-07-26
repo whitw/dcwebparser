@@ -16,13 +16,31 @@ def get(gallery="programming", no="812899", page="5"):
     soup = BeautifulSoup(data, "html.parser")
     link = soup.find("div", {"class": "gall_content"})
     result = {"title": None, "nick": None,
-              "date": None, "view": None, "comment": None, "body": None}
+              "date": None, "view": None, "comment": [], "body": None}
     if(link is None):
         return None
     else:
         title = link.find("span", {"class": "tit_view"}).get_text()
         head = link.find("span", {"class": "info_edit"})
-        body = link.find("div", {"class": "view_main"})
+        body = link.find("div", {"class": "view_main"}).table
+        try:
+            comment = soup.find("div", {"class": "wrap_list"})
+            comment = comment.find_all("span", {"class": "inner_best"})
+        except AttributeError:
+            comment = []
+
+        for c in comment:
+            one_comment = {'name': None, 'body': None}
+            one_comment['name'] = c.span.get_text()[1:-1]
+            one_comment['body'] = c.find("span", {"class": "txt"})
+            img = one_comment['body'].find("img")
+            if(img is not None):
+                one_comment['body'] = "(디시콘)"
+                one_comment['body'] += img.get('title')
+            else:
+                one_comment['body'] = one_comment['body'].get_text().strip()
+            result['comment'].append(one_comment)
+
         result['title'] = title.strip()
         result['nick'] = head.get_text().strip()
         result['body'] = body.get_text().strip()
@@ -35,5 +53,11 @@ def show(result):
         print("%s by %s\n%s" % (result['title'],
                                 result['nick'],
                                 result['body']))
+        if(len(result['comment']) > 0):
+            print('------------------------------')
+            for i in result['comment']:
+                print('%s: %s' % (i['name'], i['body']))
+            print('------------------------------')
+
     else:
         print('Unable to read page! May be deleted')

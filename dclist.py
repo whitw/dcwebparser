@@ -12,8 +12,8 @@ def read(
     try:
         req = urllib.request.Request(list_page, headers=header)
         data = urllib.request.urlopen(req).read()
-        with open("result_list.txt", "wt") as file:
-            file.write(data.decode('utf8'))
+        # with open("result_list.txt", "wt") as file:
+        # file.write(data.decode('utf8'))
     except HTTPError:
         print("HTTPError:Unable to read page")
         return None
@@ -59,8 +59,8 @@ def read(
 
 def search(
     gallery='programming',
-    search_type=0,
     page='1',
+    search_type=0,
     keyword='',
     view_recommend=False
 ):
@@ -68,19 +68,29 @@ def search(
         search_type = int(search_type)
     except TypeError:
         search_type = 0
+
+    try:
+        page = str(page)
+    except TypeError:
+        page = 1
+
     list_search_type = ['search_all', 'search_subject', 'search_memo',
                         'search_name', 'search_subject_memo']
     dclist = 'http://m.dcinside.com/list.php?id='
     listurl = dclist + gallery + '&page=' + page
-    + '&s_type=' + list_search_type[int(search_type)] + '&s_keyword=' + keyword
+    listurl = listurl + '&s_type=' + list_search_type[search_type]
+    listurl = listurl + '&s_keyword=' + keyword
     if(view_recommend is True):
         listurl += '&exception_mode=recommend'
+    print(listurl)
     return read(listurl)
 
 
-def get(gallery='programming', page="1"):
+def get(gallery='programming', page="1", view_recommend=False):
     dclist = 'http://m.dcinside.com/list.php?id='
     listurl = dclist + gallery + '&page=' + str(page)
+    if(view_recommend is True):
+        listurl += '&exception_mode=recommend'
     return read(listurl)
 
 

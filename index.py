@@ -3,20 +3,23 @@ import dcpage as dp
 
 
 if(__name__ == "__main__"):
+    stat = {
+        'last': None,
+        'gallery': None,
+        'no': 1,
+        'keyword': None,
+        'search_type': 0,
+        'view_recommend': False
+    }
     while(True):
-        stat = {
-            'last': None,
-            'gallery': None,
-            'no': 1,
-            'keyword': None,
-            'search_type': 0,
-            'view_recommend': False
-        }
         try:
             string = input('>>>').split(' ')
         except KeyboardInterrupt:
             print("KeyboardInterrupt Occured. Ending Program...")
             break
+        except UnicodeDecodeError:
+            print("Can't decode unicode. Please retry again...")
+            continue
         if(string[0] == 'help'):
             print('list [gallery] (page)')
             print('page [gallery] [page_number]')
@@ -26,6 +29,14 @@ if(__name__ == "__main__"):
             print('next or n')
             print('before or back or p or b')
             continue
+        elif(string[0] == 'view_recommend'):
+            stat['view_recommend'] = not stat['view_recommend']
+            print(
+                'view_recommend mode is now {0}'.format(stat['view_recommend'])
+            )
+            continue
+        elif(string[0] == 'exit'):
+            break
 
         if(len(string) > 1):
             stat['gallery'] = string[1]
@@ -40,7 +51,11 @@ if(__name__ == "__main__"):
 
         if(string[0] == 'list'):
             stat['last'] = 'list'
-            dl.show(dl.get(stat['gallery'], stat['no']))
+            dl.show(dl.get(
+                stat['gallery'],
+                stat['no'],
+                stat['view_recommend']
+            ))
 
         elif(string[0] == 'page' or string[0] == 'view'):
             stat['last'] = 'page'
@@ -70,18 +85,12 @@ if(__name__ == "__main__"):
             except TypeError:
                 continue
             except IndexError:
-                stat['no'] = 1
+                stat['no'] = '1'
 
-            else:
-                dl.show(dl.search(
-                    gallery=stat['gallery'],
-                    page=stat['no'],
-                    search_type=stat['search_type'],
-                    keyword=stat['keyword'],
-                    view_recommend=stat['view_recommend']
-                    ))
-
-        elif(string[0] == 'view_recommend'):
-            pass
-        elif(string[0] == 'exit'):
-            break
+            dl.show(dl.search(
+                gallery=stat['gallery'],
+                page=stat['no'],
+                search_type=stat['search_type'],
+                keyword=stat['keyword'],
+                view_recommend=stat['view_recommend']
+                ))
