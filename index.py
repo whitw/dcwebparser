@@ -15,11 +15,14 @@ if(__name__ == "__main__"):
         try:
             string = input('>>>').split(' ')
         except KeyboardInterrupt:
-            print("KeyboardInterrupt Occured. Ending Program...")
+            print("Ending Program...")
             break
         except UnicodeDecodeError:
             print("Can't decode unicode. Please retry again...")
             continue
+
+# one_word commands
+
         if(string[0] == 'help'):
             print('list [gallery] (page)')
             print('page [gallery] [page_number]')
@@ -37,6 +40,8 @@ if(__name__ == "__main__"):
             continue
         elif(string[0] == 'exit'):
             break
+
+# over_one_word commands
 
         if(len(string) > 1):
             stat['gallery'] = string[1]

@@ -1,30 +1,27 @@
 import os
 import sys
 import urllib.request
+from urllib.error import HTTPError
 from bs4 import BeautifulSoup
-from hdr import header
+from hdr import header_chrome
 
 
 def read(
-    list_page='http://m.dcinside.com/'
+    list_page='http://gall.dcinside.com/'
     + 'list.php?id=programming&=page=1'
 ):
     try:
-        req = urllib.request.Request(list_page, headers=header)
+        req = urllib.request.Request(list_page, headers=header_chrome)
         data = urllib.request.urlopen(req).read()
-        # with open("result_list.txt", "wt") as file:
-        # file.write(data.decode('utf8'))
     except HTTPError:
         print("HTTPError:Unable to read page")
         return None
     soup = BeautifulSoup(data, "html.parser")
 
     try:
-        link = soup.find("div", {"id": "search_layer"})
-        link = link.find_all("a")
+        link = soup.find("table").tbody.find_all("tr")
     except AttributeError:
-        print("Can't access that gallery! Is it valid gallery?")
-        return None
+        raise AttributeError("Can't access that gallery!")
     result = []
 
     for li in link:
@@ -32,26 +29,26 @@ def read(
                "nick": None, "date": None, "view": None,
                "vote_up": None, "id": None}
         try:
-            string = li.get('href')  # get link to page
-            if(string is not None):
-                no = string[string.find('no=')+3:string.find('&p')]
-                if(no.isnumeric() is False):
-                    break
-            msg['no'] = no
-            msg['title'] = li.find("span", {"class": "txt"}).get_text().strip()
-            msg['comment'] = li.find("em", {"class": "txt_num"})
-            msg['comment'] = msg['comment'].get_text()[1:-1]
-            if(msg['comment'] == ''):
+            no = li.find("td", {"class": "t_notice"}).get_text()
+            if(no is not None and no.isnumeric() is True):
+                msg['no'] = no
+            else:
+                continue
+            a = li.find_all('a')
+            msg['title'] = a[0].get_text().strip()
+            if(len(a) > 1):
+                msg['comment'] = a[1].em.get_text()[1:-1]
+            else:
                 msg['comment'] = '0'
-            msg['nick'] = li.find("span", {"class": "name"}).get_text()
-            class_info_span = li.find("span", {"class": "info"})
-            class_info_span = class_info_span.find_all("span")
-            msg['date'] = class_info_span[2].get_text()
-            msg['view'] = class_info_span[4].find('span').get_text()
-            msg['vote_up'] = class_info_span[7].find('span').get_text()
-            msg['id'] = li.find("span", {"class": "block_info"}).get_text()
-        except Exception:
-            print('unable to read page!')
+            msg['nick'] = li.find("td", {"class": "t_writer user_layer"})
+            msg['nick'] = msg['nick'].get('user_name')
+            msg['date'] = li.find("td", {"class": "t_date"}).get('title')
+            hits = li.find_all('td', {'class': 't_hits'})
+            msg['view'] = hits[0].get_text()
+            msg['vote_up'] = hits[1].get_text()
+            msg['id'] = li.find("span", {"class": "user_nick_nm"}).get('title')
+        except AttributeError as e:
+            continue
         else:
             result.append(msg)
     return result
@@ -76,22 +73,31 @@ def search(
 
     list_search_type = ['search_all', 'search_subject', 'search_memo',
                         'search_name', 'search_subject_memo']
-    dclist = 'http://m.dcinside.com/list.php?id='
+    dclist = 'http://gall.dcinside.com/board/lists/?id='
+    mdclist = 'http://gall.dcinside.com/mgallery/board/lists/?id='
     listurl = dclist + gallery + '&page=' + page
-    listurl = listurl + '&s_type=' + list_search_type[search_type]
     listurl = listurl + '&s_keyword=' + keyword
+    listurl = listurl + '&s_type=' + list_search_type[search_type]
     if(view_recommend is True):
         listurl += '&exception_mode=recommend'
-    print(listurl)
-    return read(listurl)
+        ret = None
+    try:
+        ret = read(listurl)
+    except AttributeError:
+        ret = None
+    return ret
 
 
 def get(gallery='programming', page="1", view_recommend=False):
-    dclist = 'http://m.dcinside.com/list.php?id='
+    dclist = 'http://gall.dcinside.com/board/lists/?id='
     listurl = dclist + gallery + '&page=' + str(page)
     if(view_recommend is True):
         listurl += '&exception_mode=recommend'
-    return read(listurl)
+    try:
+        ret = read(listurl)
+    except AttributeError:
+        ret = None
+    return ret
 
 
 def show(result_list):

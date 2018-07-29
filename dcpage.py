@@ -1,19 +1,23 @@
 import os
 import sys
 import urllib.request
+from urllib.error import HTTPError
 from bs4 import BeautifulSoup
-from hdr import header
+from hdr import header_iPhone
 
 
 def get(gallery="programming", no="812899", page="5"):
     dcpage = 'http://m.dcinside.com/view.php?id='
     pageurl = dcpage + gallery + '&no=' + str(no) + '&page=' + str(page)
-    req = urllib.request.Request(pageurl, headers=header)
-    data = urllib.request.urlopen(req).read()
-    with open("result_page.txt", "wt") as file:
-        file.write(pageurl + '\n')
-        file.write(data.decode('utf8'))
+    try:
+        req = urllib.request.Request(pageurl, headers=header_iPhone)
+        data = urllib.request.urlopen(req).read()
+    except HTTPError:
+        return None
     soup = BeautifulSoup(data, "html.parser")
+    check_mgallery = None
+    if(check_mgallery is not None):
+        pass
     link = soup.find("div", {"class": "gall_content"})
     result = {"title": None, "nick": None,
               "date": None, "view": None, "comment": [], "body": None}
