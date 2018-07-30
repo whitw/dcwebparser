@@ -26,7 +26,7 @@ def get(gallery="programming", no="812899", page="5"):
     else:
         title = link.find("span", {"class": "tit_view"}).get_text()
         head = link.find("span", {"class": "info_edit"})
-        body = link.find("div", {"class": "view_main"}).table
+        body = link.find("div", {"class": "view_main"})
         try:
             comment = soup.find("div", {"class": "wrap_list"})
             comment = comment.find_all("span", {"class": "inner_best"})
@@ -47,9 +47,32 @@ def get(gallery="programming", no="812899", page="5"):
 
         result['title'] = title.strip()
         result['nick'] = head.get_text().strip()
-        result['body'] = body.get_text().strip()
+        result['body'] = read_body(body)
 
         return result
+
+
+def read_body(body):
+    res = ''
+    for child in body.descendants:
+        if(child.name == 'img'):
+            res += '(이미지)' + child.attrs['src']
+        elif(child.name == 'br'):
+            res += '\n'
+        elif(child.name == 'p'):
+            try:
+                res += child.get_text().strip()
+            except Exception as e:
+                print_err_msg(e)
+        elif(child.name == 'div' and
+             child.has_attr('class') is True and
+             child.attrs['class'] == 'yt_movie'):
+            res += '(유튜브)'
+            # currently it can't read youtube
+        else:
+            pass
+    print('*')
+    return res
 
 
 def show(result):

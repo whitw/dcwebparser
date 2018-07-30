@@ -6,18 +6,24 @@ from bs4 import BeautifulSoup
 from hdr import header_chrome
 
 
+def reqsoup(page, header):
+    try:
+        req = urllib.request.Request(page, headers=header)
+        data = urllib.request.urlopen(req).read()
+    except HTTPError as e:
+        print_error_msg(e)
+        return None
+    soup = BeautifulSoup(data, "html.parser")
+    return soup
+
+
 def read(
     list_page='http://gall.dcinside.com/'
     + 'list.php?id=programming&=page=1'
 ):
-    try:
-        req = urllib.request.Request(list_page, headers=header_chrome)
-        data = urllib.request.urlopen(req).read()
-    except HTTPError:
-        print("HTTPError:Unable to read page")
+    soup = reqsoup(list_page, header_chrome)
+    if(soup is None):
         return None
-    soup = BeautifulSoup(data, "html.parser")
-
     try:
         link = soup.find("table").tbody.find_all("tr")
     except AttributeError:
@@ -89,14 +95,20 @@ def search(
 
 
 def get(gallery='programming', page="1", view_recommend=False):
-    dclist = 'http://gall.dcinside.com/board/lists/?id='
-    listurl = dclist + gallery + '&page=' + str(page)
+    dclist = 'http://gall.dcinside.com/'
+    data = gallery + '&page=' + str(page)
+    listurl = dclist + 'board/lists/?id=' + data
     if(view_recommend is True):
         listurl += '&exception_mode=recommend'
     try:
         ret = read(listurl)
     except AttributeError:
-        ret = None
+        try:  # check if it is minor gallery
+            listurl = dclist + 'mgallery/board/lists/?id=' + data
+            ret = read(listurl)
+        except AttributeError as e:
+            print_error_msg(e)
+            return None
     return ret
 
 
@@ -115,3 +127,7 @@ def show(result_list):
     except TypeError:
         pass
     return result_list
+
+
+def print_error_msg(error):
+    print(error)
