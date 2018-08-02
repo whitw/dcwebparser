@@ -66,6 +66,19 @@ if(__name__ == "__main__"):
             stat['last'] = 'page'
             dp.show(dp.get(stat['gallery'], stat['no']))
 
+        elif(string[0] == 'get'):
+            if(len(string) > 3 and string[3].isnumeric() is True):
+                page = int(string[3])
+                dl_dictionary = dl.get(
+                    stat['gallery'],
+                    stat['no'],
+                    stat['view_recommend']
+                )
+                dp_id = dl_dictionary[page]['no']
+                stat['no'] = dp_id
+                stat['last'] = page
+                dp.show(dp.get(stat['gallery'], stat['no']))
+
         elif(string[0] == 'search'):
             if(len(string) > 2):
                 stat['last'] = 'search'

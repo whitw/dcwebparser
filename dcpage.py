@@ -4,6 +4,7 @@ import urllib.request
 from urllib.error import HTTPError
 from bs4 import BeautifulSoup
 from hdr import header_iPhone
+from image import request_image_simple
 
 
 def get(gallery="programming", no="812899", page="5"):
@@ -56,7 +57,8 @@ def read_body(body):
     res = ''
     for child in body.descendants:
         if(child.name == 'img'):
-            res += '(이미지)' + child.attrs['src']
+            res += '(이미지)'
+            request_image_simple(child.attrs['src'])
         elif(child.name == 'br'):
             res += '\n'
         elif(child.name == 'p'):
@@ -68,7 +70,7 @@ def read_body(body):
              child.has_attr('class') is True and
              child.attrs['class'] == 'yt_movie'):
             res += '(유튜브)'
-            # currently it can't read youtube
+            # currently it can't read youtube:need to be fixed
         else:
             pass
     print('*')
