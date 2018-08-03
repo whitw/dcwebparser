@@ -1,4 +1,5 @@
 import os
+from PIL import Image, ImageFilter
 from urllib.request import urlretrieve
 file = 'img_index.txt'
 
@@ -13,21 +14,24 @@ def request_image_simple(src):
             pos = f.read()
         except Exception:
             pos = 'image'
-    urlretrieve(src, 'image//' + pos + '.jpg')
+    imgpos = 'image//' + pos + '.jpg'
+    urlretrieve(src, imgpos)
     with open(file, 'wt') as f:
         pos = int(pos)
         pos = pos + 1
         pos = str(pos)
         f.write(pos)
+    return imgpos
+
+
+def sfwimage(img):
+    im = Image.open(img)
+    im = Image.eval(im, lambda x: x-32).convert('L')
+    smallsize = (int(im.size[0] * 0.2), int(im.size[1] * 0.2))
+    im = im.resize(smallsize, Image.ANTIALIAS)
+    im.save(img)
+    return img
 
 
 if(__name__ == '__main__'):
-    request_image_simple(
-        'http://dcimg7.dcinside.co.kr/viewimageM.php?'
-        + 'id=jumper&no=24b0d769e1d32ca73fef80fa11d028314d28878'
-        + 'c8e439571894d71b565e5c7cb89eaaf550bd31b6d115'
-        + 'ba7f0007c7ede3eafba192667db7099f0d5cca6'
-        + '44c4e168978e6379a9bb&f_no=7ce88374bc816cf'
-        + '63ee898bf06d698c2681f6a298a39b3edbf7'
-        + '4d862b5adca7657fd2f5a60da4edd8b4571451fa'
-        )
+    sfwimage('image//29.jpg')

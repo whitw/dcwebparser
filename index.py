@@ -9,7 +9,8 @@ if(__name__ == "__main__"):
         'no': 1,
         'keyword': None,
         'search_type': 0,
-        'view_recommend': False
+        'view_recommend': False,
+        'safe': False
     }
     while(True):
         try:
@@ -40,6 +41,12 @@ if(__name__ == "__main__"):
             continue
         elif(string[0] == 'exit'):
             break
+        elif(string[0] == 'safe'):
+            stat['safe'] = not stat['safe']
+            print(
+                'safe image mode is now {0}'.format(stat['safe'])
+            )
+            continue
 
 # over_one_word commands
 
@@ -64,7 +71,7 @@ if(__name__ == "__main__"):
 
         elif(string[0] == 'page' or string[0] == 'view'):
             stat['last'] = 'page'
-            dp.show(dp.get(stat['gallery'], stat['no']))
+            dp.show(dp.get(stat['gallery'], stat['no'], safe=stat['safe']))
 
         elif(string[0] == 'get'):
             if(len(string) > 3 and string[3].isnumeric() is True):
@@ -74,10 +81,12 @@ if(__name__ == "__main__"):
                     stat['no'],
                     stat['view_recommend']
                 )
+                if(dl_dictionary is None):
+                    continue
                 dp_id = dl_dictionary[page]['no']
                 stat['no'] = dp_id
                 stat['last'] = page
-                dp.show(dp.get(stat['gallery'], stat['no']))
+                dp.show(dp.get(stat['gallery'], stat['no'], safe=stat['safe']))
 
         elif(string[0] == 'search'):
             if(len(string) > 2):

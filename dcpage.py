@@ -4,10 +4,10 @@ import urllib.request
 from urllib.error import HTTPError
 from bs4 import BeautifulSoup
 from hdr import header_iPhone
-from image import request_image_simple
+from image import request_image_simple, sfwimage
 
 
-def get(gallery="programming", no="812899", page="5"):
+def get(gallery="programming", no="812899", page="5", safe=False):
     dcpage = 'http://m.dcinside.com/view.php?id='
     pageurl = dcpage + gallery + '&no=' + str(no) + '&page=' + str(page)
     try:
@@ -48,17 +48,20 @@ def get(gallery="programming", no="812899", page="5"):
 
         result['title'] = title.strip()
         result['nick'] = head.get_text().strip()
-        result['body'] = read_body(body)
+        result['body'] = read_body(body, safe)
 
         return result
 
 
-def read_body(body):
+def read_body(body, safe):
     res = ''
     for child in body.descendants:
         if(child.name == 'img'):
             res += '(이미지)'
-            request_image_simple(child.attrs['src'])
+            image = request_image_simple(child.attrs['src'])
+            print(image)
+            if(safe is True):
+                sfwimage(image)
         elif(child.name == 'br'):
             res += '\n'
         elif(child.name == 'p'):
