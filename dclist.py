@@ -2,6 +2,7 @@ import os
 import sys
 import urllib.request
 from urllib.error import HTTPError
+from error import print_error_msg
 from bs4 import BeautifulSoup
 from hdr import header_chrome
 
@@ -127,7 +128,3 @@ def show(result_list):
     except TypeError:
         pass
     return result_list
-
-
-def print_error_msg(error):
-    print(error)

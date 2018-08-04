@@ -83,7 +83,11 @@ if(__name__ == "__main__"):
                 )
                 if(dl_dictionary is None):
                     continue
-                dp_id = dl_dictionary[page]['no']
+                try:
+                    dp_id = dl_dictionary[page]['no']
+                except IndexError:
+                    print('Wrong Index')
+                    continue
                 stat['no'] = dp_id
                 stat['last'] = page
                 dp.show(dp.get(stat['gallery'], stat['no'], safe=stat['safe']))

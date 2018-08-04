@@ -2,6 +2,7 @@ import os
 import sys
 import urllib.request
 from urllib.error import HTTPError
+from error import print_error_msg
 from bs4 import BeautifulSoup
 from hdr import header_iPhone
 from image import request_image_simple, sfwimage
@@ -16,9 +17,6 @@ def get(gallery="programming", no="812899", page="5", safe=False):
     except HTTPError:
         return None
     soup = BeautifulSoup(data, "html.parser")
-    check_mgallery = None
-    if(check_mgallery is not None):
-        pass
     link = soup.find("div", {"class": "gall_content"})
     result = {"title": None, "nick": None,
               "date": None, "view": None, "comment": [], "body": None}
@@ -58,10 +56,12 @@ def read_body(body, safe):
     for child in body.descendants:
         if(child.name == 'img'):
             res += '(이미지)'
-            image = request_image_simple(child.attrs['src'])
-            print(image)
-            if(safe is True):
-                sfwimage(image)
+            try:
+                image = request_image_simple(child.attrs['src'])
+                if(safe is True):
+                    sfwimage(image)
+            except HTTPError as e:
+                res += ':읽는데 에러가 발생했습니다.\n'
         elif(child.name == 'br'):
             res += '\n'
         elif(child.name == 'p'):
@@ -76,7 +76,6 @@ def read_body(body, safe):
             # currently it can't read youtube:need to be fixed
         else:
             pass
-    print('*')
     return res
 
 
