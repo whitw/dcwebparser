@@ -36,7 +36,22 @@ def read(
                "nick": None, "date": None, "view": None,
                "vote_up": None, "id": None}
         try:
-            no = li.find("td", {"class": "t_notice"}).get_text()
+            notice = li.find("td", {"class": "t_notice"}).get_text()
+            if(notice == '공지'):
+                continue
+        except Excpetion as e:
+            print_error_msg(e)
+        try:
+            no = li.find("a").attrs['href']
+            try:
+                begin = no.index('no=')
+            except Exception as e:
+                continue
+            end = no.find('&page')
+            if(end == -1):
+                no = no[begin+3:]
+            else:
+                no = no[begin+3:end]
             if(no is not None and no.isnumeric() is True):
                 msg['no'] = no
             else:
@@ -113,10 +128,11 @@ def get(gallery='programming', page="1", view_recommend=False):
     return ret
 
 
-def show(result_list):
+def string_list(result_list):
+    list = []
     try:
         for msg in result_list:
-            print("({}){}[{}]({}) by {} on {}(추천|{})".format(
+            result = "{}:{}[{}]({}) by {} on {}(추천|{})".format(
                msg['no'],
                msg['title'],
                msg['comment'],
@@ -124,7 +140,22 @@ def show(result_list):
                msg['nick'],
                msg['date'],
                msg['vote_up'])
-               )
+            list.append(result)
     except TypeError:
         pass
+    return list
+
+
+def show(result_list):
+    result_list = string_list(result_list)
+    for result in result_list:
+        print(result)
+    return result_list
+
+
+def write(filename, result_list):
+    result_list = string_list(result_list)
+    with open('filename', 'at') as f:
+        for result in result_list:
+            f.write(result)
     return result_list
