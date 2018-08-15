@@ -5,6 +5,8 @@ file = 'img_index.txt'
 
 
 def request_image_simple(src):
+    if(src is None):
+        return None
     if(os.path.exists(file) is not True):
         with open(file, 'wt') as f:
             f.write('0')
@@ -27,7 +29,8 @@ def request_image_simple(src):
 def sfwimage(img):
     im = Image.open(img)
     im = Image.eval(im, lambda x: x-32).convert('L')
-    smallsize = (int(im.size[0] * 0.2), int(im.size[1] * 0.2))
+    im = im.filter(ImageFilter.FIND_EDGES)
+    smallsize = (int(im.size[0] * 0.25), int(im.size[1] * 0.25))
     im = im.resize(smallsize, Image.ANTIALIAS)
     im.save(img)
     return img
