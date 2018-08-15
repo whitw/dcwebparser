@@ -4,6 +4,7 @@ import urllib.request
 from urllib.error import HTTPError
 from error import print_error_msg
 from bs4 import BeautifulSoup
+from bs4 import NavigableString
 from hdr import header_iPhone
 from image import request_image_simple, sfwimage
 
@@ -53,29 +54,21 @@ def get(gallery="programming", no="812899", page="5", safe=False):
 
 def read_body(body, safe):
     res = ''
-    for child in body.descendants:
-        if(child.name == 'img'):
+    for c in body.descendants:
+        if(c == '\n'):
+            continue
+        if(isinstance(c, NavigableString)):
+            res += c
+        if(c.name == 'br' or c.name == 'p'):
+            res += '\n'
+        elif(c.name == 'img'):
             res += '(이미지)'
             try:
-                image = request_image_simple(child.attrs['src'])
+                image = request_image_simple(c.get('src'))
                 if(safe is True):
                     sfwimage(image)
             except HTTPError as e:
-                res += ':읽는데 에러가 발생했습니다.\n'
-        elif(child.name == 'br'):
-            res += '\n'
-        elif(child.name == 'p'):
-            try:
-                res += child.get_text().strip()
-            except Exception as e:
-                print_err_msg(e)
-        elif(child.name == 'div' and
-             child.has_attr('class') is True and
-             child.attrs['class'] == 'yt_movie'):
-            res += '(유튜브)'
-            # currently it can't read youtube:need to be fixed
-        else:
-            pass
+                res += '(:읽는데 에러가 발생했습니다.)'
     return res
 
 
