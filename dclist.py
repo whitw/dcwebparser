@@ -131,8 +131,10 @@ def get(gallery='programming', page="1", view_recommend=False):
 def string_list(result_list):
     list = []
     try:
+        i = 0
         for msg in result_list:
-            result = "{}:{}[{}]({}) by {} on {}(추천|{})".format(
+            result = "{}]{}:{}[{}]({}) by {} on {}(추천|{})".format(
+               i,
                msg['no'],
                msg['title'],
                msg['comment'],
@@ -141,6 +143,7 @@ def string_list(result_list):
                msg['date'],
                msg['vote_up'])
             list.append(result)
+            i = i + 1
     except TypeError:
         pass
     return list
