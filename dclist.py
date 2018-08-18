@@ -83,6 +83,12 @@ def search(
     keyword='',
     view_recommend=False
 ):
+    def transform_string(string):
+        result = ''
+        string = string.encode('utf8')
+        for i in range(len(string)):
+            result = result + '%' + str(hex(string[i])).lstrip('0x').upper()
+        return result
     try:
         search_type = int(search_type)
     except TypeError:
@@ -98,7 +104,7 @@ def search(
     dclist = 'http://gall.dcinside.com/board/lists/?id='
     mdclist = 'http://gall.dcinside.com/mgallery/board/lists/?id='
     listurl = dclist + gallery + '&page=' + page
-    listurl = listurl + '&s_keyword=' + keyword
+    listurl = listurl + '&s_keyword=' + transform_string(keyword)
     listurl = listurl + '&s_type=' + list_search_type[search_type]
     if(view_recommend is True):
         listurl += '&exception_mode=recommend'
