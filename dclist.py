@@ -91,6 +91,8 @@ def search(
         return result
     try:
         search_type = int(search_type)
+    except ValueError:
+        search_type = 0
     except TypeError:
         search_type = 0
 
@@ -103,16 +105,24 @@ def search(
                         'search_name', 'search_subject_memo']
     dclist = 'http://gall.dcinside.com/board/lists/?id='
     mdclist = 'http://gall.dcinside.com/mgallery/board/lists/?id='
-    listurl = dclist + gallery + '&page=' + page
-    listurl = listurl + '&s_keyword=' + transform_string(keyword)
-    listurl = listurl + '&s_type=' + list_search_type[search_type]
+    data = gallery + '&page=' + page
+    data = data + '&s_keyword=' + transform_string(keyword)
+    data = data + '&s_type=' + list_search_type[search_type]
+    listurl = dclist + data
+    ret = None
     if(view_recommend is True):
         listurl += '&exception_mode=recommend'
-        ret = None
     try:
         ret = read(listurl)
     except AttributeError:
-        ret = None
+        try:  # check if it is minor gallery
+            listurl = mdclist + data
+            if(view_recommend is True):
+                listurl += '&exception_mode=recommend'
+            ret = read(listurl)
+        except AttributeError as e:
+            print_error_msg(e)
+            return None
     return ret
 
 
@@ -127,6 +137,8 @@ def get(gallery='programming', page="1", view_recommend=False):
     except AttributeError:
         try:  # check if it is minor gallery
             listurl = dclist + 'mgallery/board/lists/?id=' + data
+            if(view_recommend is True):
+                listurl += '&exception_mode=recommend'
             ret = read(listurl)
         except AttributeError as e:
             print_error_msg(e)
@@ -147,7 +159,8 @@ def string_list(result_list):
                msg['view'],
                msg['nick'],
                msg['date'],
-               msg['vote_up'])
+               msg['vote_up']
+            )
             list.append(result)
             i = i + 1
     except TypeError:
@@ -157,6 +170,8 @@ def string_list(result_list):
 
 def show(result_list):
     result_list = string_list(result_list)
+    if(len(result_list) == 0):
+        print('No result available!')
     for result in result_list:
         print(result)
     return result_list
