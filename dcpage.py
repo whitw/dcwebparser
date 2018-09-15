@@ -9,47 +9,95 @@ from hdr import header_iPhone
 from image import request_image_simple, sfwimage
 
 
-def get(gallery="programming", no="812899", page="5", safe=False):
-    dcpage = 'http://m.dcinside.com/view.php?id='
-    pageurl = dcpage + gallery + '&no=' + str(no) + '&page=' + str(page)
-    try:
-        req = urllib.request.Request(pageurl, headers=header_iPhone)
-        data = urllib.request.urlopen(req).read()
-    except HTTPError:
-        return None
-    soup = BeautifulSoup(data, "html.parser")
-    link = soup.find("div", {"class": "gall_content"})
-    result = {"title": None, "nick": None,
-              "date": None, "view": None, "comment": [], "body": None}
-    if(link is None):
-        return None
-    else:
-        title = link.find("span", {"class": "tit_view"}).get_text()
-        head = link.find("span", {"class": "info_edit"})
-        body = link.find("div", {"class": "view_main"})
+class dcpage:
+    def __init__(self, gallery, no, page='1', safe=True):
+        self.gallery = gallery
+        self.no = no
+        self.page = page
+        self.safe = safe
+        self.result = {
+            "title": None,
+            "nick": None,
+            "date": None,
+            "view": None, "comment": [], "body": None}
+        self.read_page()
+
+    def set_gallery(self, gallery):
+        self.gallery = gallery
+
+    def get(self, gallery, no, page='1', safe=True):
+        self.gallery = gallery
+        self.no = no
+        self.page = page
+        self.safe = safe
+        self.read_page()
+
+    def gethtml(self):
+        dcpage = 'http://m.dcinside.com/view.php?id='
+        pageurl = dcpage + self.gallery
+        pageurl = pageurl + '&no=' + str(self.no) + '&page=' + str(self.page)
+        req = None
+        data = None
         try:
-            comment = soup.find("div", {"class": "wrap_list"})
-            comment = comment.find_all("span", {"class": "inner_best"})
-        except AttributeError:
-            comment = []
+            req = urllib.request.Request(pageurl, headers=header_iPhone)
+            data = urllib.request.urlopen(req).read()
+        except HTTPError:
+            return None
+        return data
 
-        for c in comment:
-            one_comment = {'name': None, 'body': None}
-            one_comment['name'] = c.span.get_text()[1:-1]
-            one_comment['body'] = c.find("span", {"class": "txt"})
-            img = one_comment['body'].find("img")
-            if(img is not None):
-                one_comment['body'] = "(디시콘)"
-                one_comment['body'] += img.get('title')
-            else:
-                one_comment['body'] = one_comment['body'].get_text().strip()
-            result['comment'].append(one_comment)
+    def debug(self):
+        data = self.gethtml()
+        with open('result.txt', 'wt') as f:
+            f.write(data.decode('utf8'))
 
-        result['title'] = title.strip()
-        result['nick'] = head.get_text().strip()
-        result['body'] = read_body(body, safe)
+    def read_page(self):
+        data = self.gethtml()
+        if(data is None):
+            return None
+        soup = BeautifulSoup(data, "html.parser")
+        link = soup.find("div", {"class": "gall_content"})
+        if(link is None):
+            return None
+        else:
+            title = link.find("span", {"class": "tit_view"}).get_text()
+            head = link.find("span", {"class": "info_edit"})
+            body = link.find("div", {"class": "view_main"})
+            try:
+                comment = soup.find("div", {"class": "wrap_list"})
+                comment = comment.find_all("span", {"class": "inner_best"})
+            except AttributeError:
+                comment = []
+            self.result['comment'] = parse_comments(comment)
+            self.result['title'] = title.strip()
+            self.result['nick'] = head.get_text().strip()
+            self.result['body'] = read_body(body, self.safe)
 
-        return result
+    def result_str(self):
+        str = ''
+        if(self.result['title'] is not None):
+            str += "{} by {}\n{}\n".format(
+                self.result['title'],
+                self.result['nick'],
+                self.result['body']
+            )
+            if(len(self.result['comment']) > 0):
+                str += '------------------------------\n'
+                for i in self.result['comment']:
+                    str += '{}: {}\n'.format(i['name'], i['body'])
+                str += '------------------------------\n'
+        else:
+            str = 'Unable to read page! May be deleted'
+        return str
+
+    def show(self):
+        print(self.result_str())
+
+    def print(self):
+        print(self.gallery)
+        print(self.no)
+        print(self.page)
+        print(self.safe)
+        print(self.result)
 
 
 def read_body(body, safe):
@@ -57,7 +105,7 @@ def read_body(body, safe):
     for c in body.descendants:
         if(c == '\n'):
             continue
-        if(isinstance(c, NavigableString)):
+        if(isinstance(c, NavigableString) and c.parent.name != 'script'):
             res += c
         if(c.name == 'br' or c.name == 'p'):
             res += '\n'
@@ -72,16 +120,17 @@ def read_body(body, safe):
     return res
 
 
-def show(result):
-    if(result is not None and result['title'] is not None):
-        print("%s by %s\n%s" % (result['title'],
-                                result['nick'],
-                                result['body']))
-        if(len(result['comment']) > 0):
-            print('------------------------------')
-            for i in result['comment']:
-                print('%s: %s' % (i['name'], i['body']))
-            print('------------------------------')
-
-    else:
-        print('Unable to read page! May be deleted')
+def parse_comments(comment):
+    result = []
+    for c in comment:
+        one_comment = {'name': None, 'body': None}
+        one_comment['name'] = c.span.get_text()[1:-1]
+        one_comment['body'] = c.find("span", {"class": "txt"})
+        img = one_comment['body'].find("img")
+        if(img is not None):
+            one_comment['body'] = "(디시콘)"
+            one_comment['body'] += img.get('title')
+        else:
+            one_comment['body'] = one_comment['body'].get_text().strip()
+        result.append(one_comment)
+    return result

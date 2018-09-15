@@ -17,6 +17,7 @@ def request_image_simple(src):
         except Exception:
             pos = 'image'
     imgpos = 'image//' + pos + '.jpg'
+    imgpos = imgpos.replace('&amp;', '&')
     urlretrieve(src, imgpos)
     with open(file, 'wt') as f:
         pos = int(pos)
@@ -28,10 +29,12 @@ def request_image_simple(src):
 
 def sfwimage(img):
     im = Image.open(img)
-    im = Image.eval(im, lambda x: x-32).convert('L')
+    im = Image.eval(im, lambda x: x-50).convert('L')
     im = im.filter(ImageFilter.FIND_EDGES)
-    smallsize = (int(im.size[0] * 0.25), int(im.size[1] * 0.25))
-    im = im.resize(smallsize, Image.ANTIALIAS)
+    # im = Image.eval(im, lambda x: 256-x)
+    while(im.size[0] > 300 or im.size[1] > 300):
+        smallsize = (int(im.size[0] * 0.5), int(im.size[1] * 0.5))
+        im = im.resize(smallsize, Image.ANTIALIAS)
     im.save(img)
     return img
 
