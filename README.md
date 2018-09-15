@@ -1,5 +1,7 @@
 # dcwebparser
-parse dcinside
+cui based parse dcinside   
+_> python3 index.py
+
 
 ***
 
@@ -9,8 +11,11 @@ parse dcinside
   + parse pages.body
     + ignore ads from pages
 
-+ make classes named 'dclist' and 'dclist'
++ make classes named 'dclist'
 
 + communicate with pages
    + login and sign_in
-   + write 
+   + write
+   + make comments
+   
++ gui based programming
