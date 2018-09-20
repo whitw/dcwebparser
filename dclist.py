@@ -26,21 +26,41 @@ def read(
     if(soup is None):
         return None
     try:
-        link = soup.find("table").tbody.find_all("tr")
+        trs = soup.find("table", {"class": "gall_list"}).tbody.find_all("tr")
     except AttributeError:
         raise AttributeError("Can't access that gallery!")
     result = []
 
-    for li in link:
-        msg = {"no": None, "title": None, "comment": None,
+    for tr in trs:
+        msg = {"have_img": False, "no": None, "title": None, "comment": None,
                "nick": None, "date": None, "view": None,
                "vote_up": None, "id": None}
         try:
-            notice = li.find("td", {"class": "t_notice"}).get_text()
-            if(notice == '공지'):
+            ub_word = tr.find("td", {"class": "gall_tit"})
+            notice = ub_word.em['class'][1]
+            msg['title'] = ub_word.a.get_text()
+            comment = ub_word.find("a", {"class": "reply_numbox"})
+            if(comment is not None):
+                msg['comment'] = comment.get_text()[1:-1]
+            else:
+                msg['comment'] = '0'
+            if(notice == 'icon_notice'):
                 continue
-        except Excpetion as e:
+            elif(notice == 'icon_img'):
+                msg['have_img'] = True
+            else:
+                msg['have_img'] = False
+        except Exception as e:
             print_error_msg(e)
+        try:
+            msg['no'] = tr.find("td", {"class": "gall_num"}).get_text()
+            nick = tr.find("td", {"class": "gall_writer"})
+            msg['nick'] = nick['data-nick']
+            msg['date'] = tr.find("td", {"class": "gall_date"}).get_text()
+            msg['view'] = tr.find("td", {"class": "gall_count"}).get_text()
+            vote_up = tr.find("td", {"class": "gall_recommend"})
+            msg['vote_up'] = vote_up.get_text()
+            '''
         try:
             no = li.find("a").attrs['href']
             try:
@@ -69,6 +89,7 @@ def read(
             msg['view'] = hits[0].get_text()
             msg['vote_up'] = hits[1].get_text()
             msg['id'] = li.find("span", {"class": "user_nick_nm"}).get('title')
+            '''
         except AttributeError as e:
             continue
         else:

@@ -5,6 +5,7 @@ import sys
 from error import print_error_msg
 from command import command, command_book
 
+dl.read('http://gall.dcinside.com/board/lists/?id=programming')
 
 book = command_book()
 stat = {
