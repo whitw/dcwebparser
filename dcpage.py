@@ -15,6 +15,7 @@ class dcpage:
         self.no = no
         self.page = page
         self.safe = safe
+        self.referer = None
         self.result = {
             "title": None,
             "nick": None,
@@ -43,6 +44,7 @@ class dcpage:
             data = urllib.request.urlopen(req).read()
         except HTTPError:
             return None
+        self.referer = pageurl
         return data
 
     def debug(self):
@@ -70,7 +72,27 @@ class dcpage:
             self.result['comment'] = parse_comments(comment)
             self.result['title'] = title.strip()
             self.result['nick'] = head.get_text().strip()
-            self.result['body'] = read_body(body, self.safe)
+            self.result['body'] = self.read_body(body, self.safe)
+
+    def read_body(self, body, safe, simple_name=True):
+        res = ''
+        for c in body.descendants:
+            if(c == '\n'):
+                continue
+            if(isinstance(c, NavigableString) and c.parent.name != 'script'):
+                res += c
+            if(c.name == 'br' or c.name == 'p'):
+                res += '\n'
+            elif(c.name == 'img'):
+                res += '(이미지)'
+                try:
+                    image = request_image_simple(self.referer, c.get('src'), simple_name=simple_name)
+                    if(safe is True):
+                        sfwimage(image)
+                except HTTPError as e:
+                    image = None
+                    res += '(:읽는데 에러가 발생했습니다.)'
+        return res
 
     def result_str(self):
         str = ''
@@ -98,26 +120,6 @@ class dcpage:
         print(self.page)
         print(self.safe)
         print(self.result)
-
-
-def read_body(body, safe):
-    res = ''
-    for c in body.descendants:
-        if(c == '\n'):
-            continue
-        if(isinstance(c, NavigableString) and c.parent.name != 'script'):
-            res += c
-        if(c.name == 'br' or c.name == 'p'):
-            res += '\n'
-        elif(c.name == 'img'):
-            res += '(이미지)'
-            try:
-                image = request_image_simple(c.get('src'))
-                if(safe is True):
-                    sfwimage(image)
-            except HTTPError as e:
-                res += '(:읽는데 에러가 발생했습니다.)'
-    return res
 
 
 def parse_comments(comment):

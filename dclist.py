@@ -1,21 +1,11 @@
 import os
 import sys
+from html_tool import reqsoup
 import urllib.request
 from urllib.error import HTTPError
 from error import print_error_msg
 from bs4 import BeautifulSoup
 from hdr import header_chrome
-
-
-def reqsoup(page, header):
-    try:
-        req = urllib.request.Request(page, headers=header)
-        data = urllib.request.urlopen(req).read()
-    except HTTPError as e:
-        print_error_msg(e)
-        return None
-    soup = BeautifulSoup(data, "html.parser")
-    return soup
 
 
 def read(
@@ -60,36 +50,6 @@ def read(
             msg['view'] = tr.find("td", {"class": "gall_count"}).get_text()
             vote_up = tr.find("td", {"class": "gall_recommend"})
             msg['vote_up'] = vote_up.get_text()
-            '''
-        try:
-            no = li.find("a").attrs['href']
-            try:
-                begin = no.index('no=')
-            except Exception as e:
-                continue
-            end = no.find('&page')
-            if(end == -1):
-                no = no[begin+3:]
-            else:
-                no = no[begin+3:end]
-            if(no is not None and no.isnumeric() is True):
-                msg['no'] = no
-            else:
-                continue
-            a = li.find_all('a')
-            msg['title'] = a[0].get_text().strip()
-            if(len(a) > 1):
-                msg['comment'] = a[1].em.get_text()[1:-1]
-            else:
-                msg['comment'] = '0'
-            msg['nick'] = li.find("td", {"class": "t_writer user_layer"})
-            msg['nick'] = msg['nick'].get('user_name')
-            msg['date'] = li.find("td", {"class": "t_date"}).get('title')
-            hits = li.find_all('td', {'class': 't_hits'})
-            msg['view'] = hits[0].get_text()
-            msg['vote_up'] = hits[1].get_text()
-            msg['id'] = li.find("span", {"class": "user_nick_nm"}).get('title')
-            '''
         except AttributeError as e:
             continue
         else:

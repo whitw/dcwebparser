@@ -107,7 +107,6 @@ def f_get(argvs):
             safe=stat['safe']
         )
     page.show()
-    page.debug()
 
 
 def f_get_all(argvs):
@@ -140,7 +139,8 @@ def f_page(argvs):
         raise IndexError('Please Enter the number of page!')
     except ValueError:
         raise ValueError('Please enter valid number.')
-    dp(stat['gallery'], stat['no'], safe=stat['safe']).show()
+    page = dp(stat['gallery'], stat['no'], safe=stat['safe'])
+    page.show()
 
 
 def f_search(argvs):
