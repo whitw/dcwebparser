@@ -58,10 +58,10 @@ def read(
 
 
 def search(
-    gallery='programming',
+    gallery,
+    keyword,
     page='1',
     search_type=0,
-    keyword='',
     view_recommend=False
 ):
     def transform_string(string):
@@ -107,7 +107,7 @@ def search(
     return ret
 
 
-def get(gallery='programming', page="1", view_recommend=False):
+def get(gallery, page="1", view_recommend=False):
     dclist = 'http://gall.dcinside.com/'
     data = gallery + '&page=' + str(page)
     listurl = dclist + 'board/lists/?id=' + data

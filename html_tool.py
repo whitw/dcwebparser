@@ -1,6 +1,7 @@
 import urllib.request
 from bs4 import BeautifulSoup
 from urllib.error import HTTPError
+from error import print_error_msg
 from hdr import header_chrome
 
 

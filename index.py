@@ -5,11 +5,11 @@ import sys
 from error import print_error_msg
 from command import command, command_book
 
-dl.read('http://gall.dcinside.com/board/lists/?id=programming')
 
 book = command_book()
 stat = {
     'last': [],
+    'last_page': None,
     'gallery': '',
     'no': 1,
     'keyword': None,
@@ -20,11 +20,12 @@ stat = {
 
 
 def f_view_recommend(argvs):
-        stat['view_recommend'] = not stat['view_recommend']
-        print(
-            'view_recommend mode is now {0}'.format(stat['view_recommend'])
-        )
-        stat['last'] = []
+    stat['view_recommend'] = not stat['view_recommend']
+    print(
+        'view_recommend mode is now {0}'.format(stat['view_recommend'])
+    )
+    stat['last'] = []
+    stat['last_page'] = None
 
 
 def f_exit(argvs):
@@ -38,11 +39,16 @@ def f_clear(argvs):
 def f_gallery(argvs):
     gallery = argvs.split(' ')[0]
     if(gallery == ''):
-        raise ValueError('Please enter valid gallery code.')
+        if(stat['gallery'] == ''):
+            print('set gallery first!')
+        else:
+            print('you are now on gallery "%s"' % stat['gallery'])
+        return
     if(dl.get(gallery, 1, False) is not None):
         stat['gallery'] = gallery
         print('you now access on gallery "%s"' % stat['gallery'])
     stat['last'] = []
+    stat['last_page'] = None
 
 
 def f_safe(argvs):
@@ -66,6 +72,7 @@ def f_list(argvs):
             stat['view_recommend']
         )
     dl.show(stat['last'])
+    stat['last_page'] = None
 
 
 def f_get(argvs):
@@ -107,6 +114,8 @@ def f_get(argvs):
             safe=stat['safe']
         )
     page.show()
+    # page.debug()
+    stat['last_page'] = page
 
 
 def f_get_all(argvs):
@@ -127,6 +136,7 @@ def f_get_all(argvs):
         dl_dictionary = stat['last']
     for dl_page in dl_dictionary:
         dp(stat['gallery'], dl_page['no'], stat['safe']).show()
+    stat['last_page'] = dl_dictionary[-1]
 
 
 def f_page(argvs):
@@ -141,6 +151,7 @@ def f_page(argvs):
         raise ValueError('Please enter valid number.')
     page = dp(stat['gallery'], stat['no'], safe=stat['safe'])
     page.show()
+    stat['last_page'] = page
 
 
 def f_search(argvs):
@@ -157,12 +168,13 @@ def f_search(argvs):
         page = argv[2]
     stat['last'] = dl.search(
         stat['gallery'],
+        keyword,
         page,
         search_type,
-        keyword,
         stat['view_recommend']
     )
     dl.show(stat['last'])
+    stat['last_page'] = None
 
 
 book.append(command(
@@ -215,6 +227,12 @@ use (page) to view next list of result''',
 ))
 
 
+def exec(string):
+    cmd = string.split(' ')[0]
+    argv = string[len(cmd) + 1:]
+    book.command[cmd].exec(argv)
+
+
 if(__name__ == "__main__"):
     while(True):
         try:
@@ -226,15 +244,16 @@ if(__name__ == "__main__"):
             print("Can't decode unicode. Please retry again...")
             continue
         try:
-            cmd = string.split(' ')[0]
-            string = string[len(cmd) + 1:]
-            book.command[cmd].exec(string)
+            exec(string)
         except KeyError:
             print("There is no command like that! try 'help' to get help.")
         except IndexError as e:
             print_error_msg(e)
             continue
         except ValueError as e:
+            print_error_msg(e)
+            continue
+        except TypeError as e:
             print_error_msg(e)
             continue
         except ConnectionResetError:
