@@ -203,6 +203,8 @@ def parse_comments(comment):
         if(c['class'][0] == 'comment-add'):
             one_comment['body'] += ' └▶'
         one_comment['name'] = c.a.contents[0]
+        if(not isinstance(one_comment['name'], NavigableString)):
+            one_comment['name'] = one_comment['name'].get_text().strip()
         body = c.find("p", {"class": "txt"})
         if(body is None):
             one_comment['body'] = ''
