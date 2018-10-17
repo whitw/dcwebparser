@@ -86,7 +86,20 @@ def sfwimage(img, to=None):
         return None
     im = Image.eval(im, lambda x: x-50).convert('L')
     im = im.filter(ImageFilter.FIND_EDGES)
-    # im = Image.eval(im, lambda x: 256-x)
+    # im = Image.eval(im, lambda x: 256-x) # white image
+    im.save(to)
+    return to
+
+
+def smallimage(img, to=None):
+    if(img is None):
+        return None
+    if(to is None):
+        to = img
+    try:
+        im = Image.open(img)
+    except OSError as e:
+        return None
     while(im.size[0] > 300 or im.size[1] > 300):
         smallsize = (int(im.size[0] * 0.5), int(im.size[1] * 0.5))
         im = im.resize(smallsize, Image.ANTIALIAS)

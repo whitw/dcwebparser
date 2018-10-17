@@ -15,7 +15,9 @@ stat = {
     'keyword': None,
     'search_type': 0,
     'view_recommend': False,
-    'safe': True
+    'safe': True,
+    'short_name': True,
+    'small_img': True
 }
 
 
@@ -49,6 +51,20 @@ def f_gallery(argvs):
         print('you now access on gallery "%s"' % stat['gallery'])
     stat['last'] = []
     stat['last_page'] = None
+
+
+def f_small_img(argvs):
+    stat['small_img'] = not stat['small_img']
+    print(
+        'small image mode is now {0}'.format(stat['small_img'])
+    )
+
+
+def f_short_name(argvs):
+    stat['short_name'] = not stat['short_name']
+    print(
+        'short_named image mode is now {0}'.format(stat['short_name'])
+    )
 
 
 def f_safe(argvs):
@@ -90,19 +106,19 @@ def f_get(argvs):
     except ValueError:
         raise ValueError('Please enter valid number.')
     if(stat['last'] == []):
-        dl_dictionary = dl.get(
+        dl_list = dl.get(
             stat['gallery'],
             stat['no'],
             stat['view_recommend']
         )
-        if(dl_dictionary is None):
+        if(dl_list is None):
             return
         else:
-            stat['last'] = dl_dictionary
+            stat['last'] = dl_list
     else:
-        dl_dictionary = stat['last']
+        dl_list = stat['last']
     try:
-        dp_id = dl_dictionary[page]['no']
+        dp_id = dl_list[page]['no']
     except IndexError:
         return
     except TypeError:
@@ -111,7 +127,9 @@ def f_get(argvs):
     page = dp(
             stat['gallery'],
             no=stat['no'],
-            safe=stat['safe']
+            safe=stat['safe'],
+            simple_name=stat['short_name'],
+            small_img=stat['small_img']
         )
     page.show()
     # page.debug()
@@ -127,16 +145,20 @@ def f_get_all(argvs):
     except ValueError:
         raise ValueError('Please enter valid number.')
     if(stat['last'] == []):
-        dl_dictionary = dl.get(
+        dl_list = dl.get(
             stat['gallery'],
             stat['no'],
             stat['view_recommend']
         )
     else:
-        dl_dictionary = stat['last']
-    for dl_page in dl_dictionary:
-        dp(stat['gallery'], dl_page['no'], stat['safe']).show()
-    stat['last_page'] = dl_dictionary[-1]
+        dl_list = stat['last']
+    for dl_page in dl_list:
+        dp(stat['gallery'],
+            no=stat['no'],
+            safe=stat['safe'],
+            simple_name=stat['short_name'],
+            small_img=stat['small_img']).show()
+    stat['last_page'] = dl_list[-1]
 
 
 def f_page(argvs):
@@ -149,7 +171,11 @@ def f_page(argvs):
         raise IndexError('Please Enter the number of page!')
     except ValueError:
         raise ValueError('Please enter valid number.')
-    page = dp(stat['gallery'], stat['no'], safe=stat['safe'])
+    page = dp(stat['gallery'],
+              no=stat['no'],
+              safe=stat['safe'],
+              simple_name=stat['short_name'],
+              small_img=stat['small_img'])
     page.show()
     stat['last_page'] = page
 
@@ -177,14 +203,50 @@ def f_search(argvs):
     stat['last_page'] = None
 
 
+def f_get_all_images(argvs):
+    argv = argvs.split(' ')
+
+    if(len(argv) > 1):
+        try:
+            page = int(argv[1])
+        except ValueError:
+            raise ValueError('Please enter valid number.')
+    else:
+        if(stat['last'] == []):
+            dl_list = dl.get(
+                stat['gallery'],
+                stat['no'],
+                stat['view_recommend']
+            )
+        else:
+            dl_list = stat['last']
+    for dl_page in dl_list:
+        dp(stat['gallery'],
+            no=stat['no'],
+            safe=stat['safe'],
+            simple_name=stat['short_name'],
+            small_img=stat['small_img']).get_image()
+    stat['last'] = dl_list
+    stat['last_page'] = None
+
+
 book.append(command(
-            'view_recommend',
-            'usage: view_recommend\ntoggle showing recommended pages only',
-            f_view_recommend
-            )
-            )
+    'view_recommend',
+    'usage: view_recommend\ntoggle showing recommended pages only',
+    f_view_recommend
+))
 book.append(command('exit', 'usage: exit\nend program', f_exit))
 book.append(command('safe', 'usage: safe\ntoggle safe image mode', f_safe))
+book.append(command(
+    'short',
+    'usage: short\ntoggle short named image mode',
+    f_short_name
+))
+book.append(command(
+    'tinyimg',
+    'usage: tinyimg\ntoggle whether to download images as small size',
+    f_small_img
+))
 book.append(command('clear', 'usage: clear\nclear the screen', f_clear))
 book.append(command(
     'gallery',
@@ -225,12 +287,25 @@ use (search_type) to set how to search the keyword.
 use (page) to view next list of result''',
     f_search
 ))
+book.append(command(
+    'get_all_image',
+    '''usage: get_all_image (number of list page)
+    get all images in the list''',
+    f_get_all_images
+))
 
 
 def exec(string):
     cmd = string.split(' ')[0]
     argv = string[len(cmd) + 1:]
     book.command[cmd].exec(argv)
+
+
+def new_command(newcmd):
+    if(isinstance(newcmd, command)):
+        book.append(command)
+    else:
+        raise AttributeError('Not a command class!')
 
 
 if(__name__ == "__main__"):
