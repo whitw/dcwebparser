@@ -87,4 +87,6 @@ venv.bak/
 
 .jpg
 
-img_index.txt
+*/img_index.txt
+
+img_/

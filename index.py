@@ -1,33 +1,25 @@
-import dclist as dl
+from dclist import dclist as dl
 from dcpage import dcpage as dp
 import os
 import sys
-from error import print_error_msg
+from error import print_error_msg, NoGalleryError
 from command import command, command_book
-
+from image import imagemachine, safefilter, smallfilter
 
 book = command_book()
-stat = {
-    'last': [],
-    'last_page': None,
-    'gallery': '',
-    'no': 1,
-    'keyword': None,
-    'search_type': 0,
-    'view_recommend': False,
-    'safe': True,
-    'short_name': True,
-    'small_img': True
-}
+imagemode = imagemachine([safefilter, smallfilter])
+tinyimg = True
+safeimg = True
+shortname = True
+gallery = ''
+view_recommend = False
+last_list = None
 
 
 def f_view_recommend(argvs):
-    stat['view_recommend'] = not stat['view_recommend']
-    print(
-        'view_recommend mode is now {0}'.format(stat['view_recommend'])
-    )
-    stat['last'] = []
-    stat['last_page'] = None
+    global view_recommend
+    view_recommend = not view_recommend
+    print('view_recommend mode is now', 'On' if view_recommend else 'Off')
 
 
 def f_exit(argvs):
@@ -39,59 +31,52 @@ def f_clear(argvs):
 
 
 def f_gallery(argvs):
-    gallery = argvs.split(' ')[0]
-    if(gallery == ''):
-        if(stat['gallery'] == ''):
-            print('set gallery first!')
-        else:
-            print('you are now on gallery "%s"' % stat['gallery'])
-        return
-    if(dl.get(gallery, 1, False) is not None):
-        stat['gallery'] = gallery
-        print('you now access on gallery "%s"' % stat['gallery'])
-    stat['last'] = []
-    stat['last_page'] = None
+    global gallery
+    argv = argvs.split(' ')
+    try:
+        dl(argv[0], 1).get()
+    except NoGalleryError:
+        print("There is no gallery named " + argv[0] + "!")
+    else:
+        gallery = argv[0]
+        print("You can now access on gallery " + gallery)
 
 
 def f_small_img(argvs):
-    stat['small_img'] = not stat['small_img']
-    print(
-        'small image mode is now {0}'.format(stat['small_img'])
-    )
+    global tinyimg
+    tinyimg = not tinyimg
+    imagemode.toggle(smallfilter, tinyimg)
+    print('tiny image mode is now', 'On' if tinyimg else 'Off')
 
 
 def f_short_name(argvs):
-    stat['short_name'] = not stat['short_name']
-    print(
-        'short_named image mode is now {0}'.format(stat['short_name'])
-    )
+    global shortname
+    shortname = not shortname
+    print('short named image mode is now', 'On' if shortname else 'Off')
 
 
 def f_safe(argvs):
-    stat['safe'] = not stat['safe']
-    print(
-        'safe image mode is now {0}'.format(stat['safe'])
-    )
+    global safeimg
+    safeimg = not safeimg
+    imagemode.toggle(safefilter, safeimg)
+    print('safe image mode is now', 'On' if safeimg else 'Off')
 
 
 def f_list(argvs):
+    global last_list
     argv = argvs.split(' ')
     if(argv[0] == ''):
         argv[0] = 1
     try:
-        stat['no'] = int(argv[0])
+        no = int(argv[0])
     except ValueError:
         raise ValueError('Please enter valid number.')
-    stat['last'] = dl.get(
-            stat['gallery'],
-            stat['no'],
-            stat['view_recommend']
-        )
-    dl.show(stat['last'])
-    stat['last_page'] = None
+    last_list = dl(gallery, no, view_recommend, simple_image_name=shortname)
+    last_list.show()
 
 
 def f_get(argvs):
+    global last_list
     argv = argvs.split(' ')
     if(argv[0] == ''):
         argv[0] = 0
@@ -100,84 +85,52 @@ def f_get(argvs):
     except ValueError:
         raise ValueError('Please enter valid number.')
     try:
-        stat['no'] = int(argv[1])
+        no = int(argv[1])
     except IndexError:
-        stat['no'] = 1
+        no = 1
     except ValueError:
         raise ValueError('Please enter valid number.')
-    if(stat['last'] == []):
-        dl_list = dl.get(
-            stat['gallery'],
-            stat['no'],
-            stat['view_recommend']
-        )
-        if(dl_list is None):
-            return
-        else:
-            stat['last'] = dl_list
-    else:
-        dl_list = stat['last']
-    try:
-        dp_id = dl_list[page]['no']
-    except IndexError:
-        return
-    except TypeError:
-        return
-    stat['no'] = dp_id
-    page = dp(
-            stat['gallery'],
-            no=stat['no'],
-            safe=stat['safe'],
-            simple_name=stat['short_name'],
-            small_img=stat['small_img']
-        )
-    page.show()
-    # page.debug()
-    stat['last_page'] = page
+    if(last_list is None):
+        last_list = dl(gallery, no, view_recommend,
+                       simple_image_name=shortname)
+    page = last_list[page]
+    if(page is not None):
+        page.show()
+        imagemode(page.get_image())
 
 
 def f_get_all(argvs):
+    global last_list
     argv = argvs.split(' ')
     if(argv[0] == ''):
         argv[0] = 1
     try:
-        stat['no'] = int(argv[0])
+        no = int(argv[0])
     except ValueError:
         raise ValueError('Please enter valid number.')
-    if(stat['last'] == []):
-        dl_list = dl.get(
-            stat['gallery'],
-            stat['no'],
-            stat['view_recommend']
-        )
-    else:
-        dl_list = stat['last']
-    for dl_page in dl_list:
-        dp(stat['gallery'],
-            no=stat['no'],
-            safe=stat['safe'],
-            simple_name=stat['short_name'],
-            small_img=stat['small_img']).show()
-    stat['last_page'] = dl_list[-1]
+    if(last_list is None):
+        last_list = dl(gallery, no, view_recommend,
+                       simple_image_name=shortname)
+    for page in last_list:
+        page.show()
+        imagemode(page.get_image())
 
 
 def f_page(argvs):
+    global last_list
     argv = argvs.split(' ')
     if(argv[0] == ''):
         argv[0] = 1
     try:
-        stat['no'] = int(argv[0])
+        no = int(argv[0])
     except IndexError:
-        raise IndexError('Please Enter the number of page!')
+        raise ValueError('Please Enter the number of page!')
     except ValueError:
         raise ValueError('Please enter valid number.')
-    page = dp(stat['gallery'],
-              no=stat['no'],
-              safe=stat['safe'],
-              simple_name=stat['short_name'],
-              small_img=stat['small_img'])
+    last_list = None
+    page = dp(gallery, no, simple_image_name=shortname)
     page.show()
-    stat['last_page'] = page
+    imagemode(page.get_image())
 
 
 def f_search(argvs):
@@ -185,49 +138,24 @@ def f_search(argvs):
     search_type = 0
     page = 1
     if(argv[0] == ''):
-        raise IndexError('Please Enter the keyword!')
+        raise TypeError('Please Enter the keyword!')
     else:
         keyword = argv[0]
     if(len(argv) > 1):
         search_type = argv[1]
     if(len(argv) > 2):
         page = argv[2]
-    stat['last'] = dl.search(
-        stat['gallery'],
-        keyword,
-        page,
-        search_type,
-        stat['view_recommend']
-    )
-    dl.show(stat['last'])
-    stat['last_page'] = None
+    pass
 
 
 def f_get_all_images(argvs):
+    global last_list
     argv = argvs.split(' ')
-
-    if(len(argv) > 1):
-        try:
-            page = int(argv[1])
-        except ValueError:
-            raise ValueError('Please enter valid number.')
-    else:
-        if(stat['last'] == []):
-            dl_list = dl.get(
-                stat['gallery'],
-                stat['no'],
-                stat['view_recommend']
-            )
-        else:
-            dl_list = stat['last']
-    for dl_page in dl_list:
-        dp(stat['gallery'],
-            no=stat['no'],
-            safe=stat['safe'],
-            simple_name=stat['short_name'],
-            small_img=stat['small_img']).get_image()
-    stat['last'] = dl_list
-    stat['last_page'] = None
+    if(last_list is None):
+        last_list = dl(gallery, no, view_recommend)
+    for page in last_list:
+        imagemode(page.get_image())
+        page.download_image()
 
 
 book.append(command(
@@ -298,14 +226,9 @@ book.append(command(
 def exec(string):
     cmd = string.split(' ')[0]
     argv = string[len(cmd) + 1:]
-    book.command[cmd].exec(argv)
-
-
-def new_command(newcmd):
-    if(isinstance(newcmd, command)):
-        book.append(command)
-    else:
-        raise AttributeError('Not a command class!')
+    return book.command[cmd].exec(argv)
+    # for case that it need to return some value...
+    # I actually think that it is highly possible to become a None
 
 
 if(__name__ == "__main__"):
@@ -319,21 +242,18 @@ if(__name__ == "__main__"):
             print("Can't decode unicode. Please retry again...")
             continue
         try:
-            exec(string)
+            ret = exec(string)
+            if(ret is not None):
+                print(ret)
         except KeyError:
             print("There is no command like that! try 'help' to get help.")
-        except IndexError as e:
-            print_error_msg(e)
-            continue
         except ValueError as e:
             print_error_msg(e)
-            continue
         except TypeError as e:
             print_error_msg(e)
-            continue
+        except NoGalleryError as e:
+            print_error_msg(e)
         except ConnectionResetError:
             print("Connection Reset Occured. Please retry again...")
         except Exception as e:
             raise e
-        else:
-            pass

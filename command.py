@@ -19,10 +19,11 @@ class command:
     def help(self):
         return self.description
 
-    def print(self):
-        print('name = %s' % self.name)
-        print('description = %s' % self.description)
-        print('f = %s' % self.f)
+    def __repr__(self):
+        s = 'name = %s' % self.name
+        s += 'description = %s' % self.description
+        s += 'f = %s' % self.f
+        return s
 
 
 class command_book:
