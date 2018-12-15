@@ -1,8 +1,5 @@
 from html_tool import reqsoup, redirection
-import urllib.request
-from urllib.error import HTTPError
 from error import print_error_msg, NoGalleryError
-from bs4 import BeautifulSoup
 from hdr import header_chrome
 from dcpage import dcpage
 from collections import namedtuple
@@ -93,7 +90,6 @@ class dclist:
         except NoGalleryError as e:
             raise e
 
-        self.__expired = False
         return len(self.resultpage) > 0
 
     def __read_url(self, url, header=header_chrome):
@@ -119,6 +115,9 @@ class dclist:
                    }
             try:
                 ub_word = tr.find('td', {'class': 'gall_tit'})
+                if(ub_word is None):
+                    self.__expired = False
+                    return None
                 notice = ub_word.em['class'][1]
                 msg['title'] = ub_word.a.get_text()
                 comment = ub_word.find('a', {'class': 'reply_numbox'})
@@ -149,6 +148,7 @@ class dclist:
             except KeyError as e:
                 continue
 
+            self.__expired = False
             self.resultpage.append(dpformat(
                 no, msg['title'], msg['nick'], msg['date'],
                 msg['view'], msg['vote_up'], msg['comment'], msg['have_img']))
@@ -156,7 +156,26 @@ class dclist:
     def show(self):
         print(self)
 
+    def mgalleryCheck(self):
+        defaulturl = 'http://gall.dcinside.com/board/lists/?id='
+        return 'mgallery' in redirection(defaulturl + self.__gallery)
+
     def search(self):
+        list_search_type = {
+                    '0': 'search_all',
+                    'all': 'search_all',
+                    '1': 'search_subject',
+                    'title': 'search_subject',
+                    '2': 'search_memo',
+                    'text': 'search_memo',
+                    '3': 'search_name',
+                    'name': 'search_name',
+                    '4': 'search_subject_memo',
+                    'titletext': 'search_subject_memo'
+                    }
+        dclist = 'http://gall.dcinside.com/'
+        minor = 'mgallery/' if self.mgalleryCheck() else ''
+        dclist += minor + 'board/lists/?id='
         self.resultpage = []
 
         def transform_string(string):
@@ -169,13 +188,16 @@ class dclist:
 
         try:
             search_by = list_search_type[self.__search_by]
-        except Exception as e:
-            print_error_msg(e)
+        except Exception:
+            search_by = 'search_all'
+        search_keyword = transform_string(self.__search_keyword)
 
-        search_keyword = self.__search_keyword
-        data = gallery + '&page=' + page
+        data = self.__gallery + '&s_type=' + search_by
         data = data + '&s_keyword=' + search_keyword
-        data = data + '&s_type=' + search_by
+        if(self.__view_recommend):
+            data = data + '&exception_mode=recommend'
+        data = data + '&page=' + self.__index
+
         listurl = dclist + data
         self.__read_url(listurl)
 
@@ -185,3 +207,4 @@ class dclist:
                           self.__index, self.simple_image_name)
         except Exception:
             return
+
