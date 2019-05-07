@@ -1,97 +1,119 @@
-import dclist as dl
+from dclist import dclist as dl
 from dcpage import dcpage as dp
 import os
 import sys
-from error import print_error_msg
+from error import print_error_msg, NoGalleryError
 from command import command, command_book
-
+from image import imagemachine, safefilter, smallfilter
 
 book = command_book()
-stat = {
-    'last': [],
-    'last_page': None,
-    'gallery': '',
-    'no': 1,
-    'keyword': None,
-    'search_type': 0,
-    'view_recommend': False,
-    'safe': True,
-    'short_name': True,
-    'small_img': True
-}
+imagemode = imagemachine([safefilter, smallfilter])
+tiny_img = False
+safe_img = False
+shortname = True
+gall = ''
+view_recommend = False
+last_list = None
+index_in_list = 0
 
 
-def f_view_recommend(argvs):
-    stat['view_recommend'] = not stat['view_recommend']
-    print(
-        'view_recommend mode is now {0}'.format(stat['view_recommend'])
-    )
-    stat['last'] = []
-    stat['last_page'] = None
+def commanddeco(func):
+    book.append(command(
+        func.__name__,
+        func.__doc__,
+        func
+    ))
+    return func
 
 
-def f_exit(argvs):
+@commanddeco
+def view_recommend(argvs):
+    '''usage: view_recommend
+toggle showing recommended pages only'''
+    global view_recommend
+    view_recommend = not view_recommend
+    print('view_recommend mode is now', 'On' if view_recommend else 'Off')
+
+
+@commanddeco
+def exit(argvs):
+    '''usage: exit
+end program'''
     sys.exit(0)
 
 
-def f_clear(argvs):
+@commanddeco
+def clear(argvs):
+    '''usage: clear
+clear the screen'''
     os.system('clear')
 
 
-def f_gallery(argvs):
-    gallery = argvs.split(' ')[0]
-    if(gallery == ''):
-        if(stat['gallery'] == ''):
-            print('set gallery first!')
-        else:
-            print('you are now on gallery "%s"' % stat['gallery'])
-        return
-    if(dl.get(gallery, 1, False) is not None):
-        stat['gallery'] = gallery
-        print('you now access on gallery "%s"' % stat['gallery'])
-    stat['last'] = []
-    stat['last_page'] = None
+@commanddeco
+def gallery(argvs):
+    '''usage: gallery [gallery]
+set gallery to [gallery]'''
+    global gall
+    argv = argvs.split(' ')
+    try:
+        dl(argv[0], 1).get()
+    except NoGalleryError:
+        print("There is no gallery named " + argv[0] + "!")
+    else:
+        gall = argv[0]
+        print("You can now access on gallery " + gall)
 
 
-def f_small_img(argvs):
-    stat['small_img'] = not stat['small_img']
-    print(
-        'small image mode is now {0}'.format(stat['small_img'])
-    )
+@commanddeco
+def tinyimg(argvs):
+    '''usage: tinyimg
+toggle whether to download images as small size'''
+    global tiny_img
+    tiny_img = not tiny_img
+    imagemode.toggle(smallfilter, tiny_img)
+    print('tiny image mode is now', 'On' if tiny_img else 'Off')
 
 
-def f_short_name(argvs):
-    stat['short_name'] = not stat['short_name']
-    print(
-        'short_named image mode is now {0}'.format(stat['short_name'])
-    )
+@commanddeco
+def short(argvs):
+    '''usage: short
+toggle short named image mode'''
+    global shortname
+    shortname = not shortname
+    print('short named image mode is now', 'On' if shortname else 'Off')
 
 
-def f_safe(argvs):
-    stat['safe'] = not stat['safe']
-    print(
-        'safe image mode is now {0}'.format(stat['safe'])
-    )
+@commanddeco
+def safeimg(argvs):
+    '''usage: safe
+toggle safe image mode'''
+    global safe_img
+    safe_img = not safe_img
+    imagemode.toggle(safefilter, safe_img)
+    print('safe image mode is now', 'On' if safe_img else 'Off')
 
 
-def f_list(argvs):
+@commanddeco
+def list(argvs):
+    '''usage: list (number of list page)
+get list of n-th page'''
+    global last_list
     argv = argvs.split(' ')
     if(argv[0] == ''):
         argv[0] = 1
     try:
-        stat['no'] = int(argv[0])
+        no = int(argv[0])
     except ValueError:
         raise ValueError('Please enter valid number.')
-    stat['last'] = dl.get(
-            stat['gallery'],
-            stat['no'],
-            stat['view_recommend']
-        )
-    dl.show(stat['last'])
-    stat['last_page'] = None
+    last_list = dl(gall, no, view_recommend, simple_image_name=shortname)
+    last_list.show()
 
 
-def f_get(argvs):
+@commanddeco
+def get(argvs):
+    '''usage: get (i-th) (number of list page)
+get n-th page on the gallery page list'''
+    global last_list
     argv = argvs.split(' ')
     if(argv[0] == ''):
         argv[0] = 0
@@ -100,212 +122,139 @@ def f_get(argvs):
     except ValueError:
         raise ValueError('Please enter valid number.')
     try:
-        stat['no'] = int(argv[1])
+        no = int(argv[1])
     except IndexError:
-        stat['no'] = 1
+        no = 1
     except ValueError:
         raise ValueError('Please enter valid number.')
-    if(stat['last'] == []):
-        dl_list = dl.get(
-            stat['gallery'],
-            stat['no'],
-            stat['view_recommend']
-        )
-        if(dl_list is None):
-            return
-        else:
-            stat['last'] = dl_list
-    else:
-        dl_list = stat['last']
-    try:
-        dp_id = dl_list[page]['no']
-    except IndexError:
-        return
-    except TypeError:
-        return
-    stat['no'] = dp_id
-    page = dp(
-            stat['gallery'],
-            no=stat['no'],
-            safe=stat['safe'],
-            simple_name=stat['short_name'],
-            small_img=stat['small_img']
-        )
-    page.show()
-    # page.debug()
-    stat['last_page'] = page
+    if(last_list is None):
+        last_list = dl(gall, no, view_recommend,
+                       simple_image_name=shortname)
+    page = last_list[page]
+    if(page is not None):
+        page.show()
+        imagemode(page.get_image())
 
 
-def f_get_all(argvs):
-    argv = argvs.split(' ')
-    if(argv[0] == ''):
-        argv[0] = 1
-    try:
-        stat['no'] = int(argv[0])
-    except ValueError:
-        raise ValueError('Please enter valid number.')
-    if(stat['last'] == []):
-        dl_list = dl.get(
-            stat['gallery'],
-            stat['no'],
-            stat['view_recommend']
-        )
-    else:
-        dl_list = stat['last']
-    for dl_page in dl_list:
-        dp(stat['gallery'],
-            no=stat['no'],
-            safe=stat['safe'],
-            simple_name=stat['short_name'],
-            small_img=stat['small_img']).show()
-    stat['last_page'] = dl_list[-1]
-
-
-def f_page(argvs):
-    argv = argvs.split(' ')
-    if(argv[0] == ''):
-        argv[0] = 1
-    try:
-        stat['no'] = int(argv[0])
-    except IndexError:
-        raise IndexError('Please Enter the number of page!')
-    except ValueError:
-        raise ValueError('Please enter valid number.')
-    page = dp(stat['gallery'],
-              no=stat['no'],
-              safe=stat['safe'],
-              simple_name=stat['short_name'],
-              small_img=stat['small_img'])
-    page.show()
-    stat['last_page'] = page
-
-
-def f_search(argvs):
-    argv = argvs.split(' ')
-    search_type = 0
-    page = 1
-    if(argv[0] == ''):
-        raise IndexError('Please Enter the keyword!')
-    else:
-        keyword = argv[0]
-    if(len(argv) > 1):
-        search_type = argv[1]
-    if(len(argv) > 2):
-        page = argv[2]
-    stat['last'] = dl.search(
-        stat['gallery'],
-        keyword,
-        page,
-        search_type,
-        stat['view_recommend']
-    )
-    dl.show(stat['last'])
-    stat['last_page'] = None
-
-
-def f_get_all_images(argvs):
-    argv = argvs.split(' ')
-
-    if(len(argv) > 1):
-        try:
-            page = int(argv[1])
-        except ValueError:
-            raise ValueError('Please enter valid number.')
-    else:
-        if(stat['last'] == []):
-            dl_list = dl.get(
-                stat['gallery'],
-                stat['no'],
-                stat['view_recommend']
-            )
-        else:
-            dl_list = stat['last']
-    for dl_page in dl_list:
-        dp(stat['gallery'],
-            no=stat['no'],
-            safe=stat['safe'],
-            simple_name=stat['short_name'],
-            small_img=stat['small_img']).get_image()
-    stat['last'] = dl_list
-    stat['last_page'] = None
-
-
-book.append(command(
-    'view_recommend',
-    'usage: view_recommend\ntoggle showing recommended pages only',
-    f_view_recommend
-))
-book.append(command('exit', 'usage: exit\nend program', f_exit))
-book.append(command('safe', 'usage: safe\ntoggle safe image mode', f_safe))
-book.append(command(
-    'short',
-    'usage: short\ntoggle short named image mode',
-    f_short_name
-))
-book.append(command(
-    'tinyimg',
-    'usage: tinyimg\ntoggle whether to download images as small size',
-    f_small_img
-))
-book.append(command('clear', 'usage: clear\nclear the screen', f_clear))
-book.append(command(
-    'gallery',
-    'usage: gallery [gallery]\nset gallery',
-    f_gallery
-))
-book.append(command(
-    'list',
-    '''usage: list (number of list page)
-get list of n-th page''',
-    f_list
-))
-book.append(command(
-    'page',
-    '''usage: page [number of page]
-get page on the gallery by index number''',
-    f_page
-))
-book.append(command(
-    'get',
-    '''usage: get (i-th) (number of list page)
-get n-th page on the gallery page list''',
-    f_get
-))
-book.append(command(
-    'get_all',
+@commanddeco
+def get_all(argvs):
     '''usage: get_all (number of list page)
-get every pages on the list''',
-    f_get_all
-))
-book.append(command(
-    'search',
-    '''usage: search [keyword] (search_type) (page)
-search_type = 0:all, 1:by title, 2:by text,
+get every pages on the list'''
+    global last_list
+    argv = argvs.split(' ')
+    if(argv[0] == ''):
+        argv[0] = 1
+    try:
+        no = int(argv[0])
+    except ValueError:
+        raise ValueError('Please enter valid number.')
+    if(last_list is None):
+        last_list = dl(gall, no, view_recommend,
+                       simple_image_name=shortname)
+    for page in last_list:
+        page.show()
+        imagemode(page.get_image())
+
+
+@commanddeco
+def page(argvs):
+    '''usage: page [number of page]
+get page on the gallery by index number'''
+    global last_list
+    argv = argvs.split(' ')
+    if(argv[0] == ''):
+        argv[0] = 1
+    try:
+        no = int(argv[0])
+    except IndexError:
+        raise ValueError('Please Enter the number of page!')
+    except ValueError:
+        raise ValueError('Please enter valid number.')
+    last_list = None
+    page = dp(gall, no, simple_image_name=shortname)
+    page.show()
+    imagemode(page.get_image())
+
+
+@commanddeco
+def search(argvs):
+    '''usage: search ['keyword'] (page) (search_type)
+keyword must be in two apostrophe.
+search_type =
+0:all, 1:by title, 2:by text,
 3:by name, 4:by title and text
 search some keyword in gallery.
-use (search_type) to set how to search the keyword.
-use (page) to view next list of result''',
-    f_search
-))
-book.append(command(
-    'get_all_image',
+use (page) to view page-th list of result
+use (search_type) to set how to search the keyword.'''
+    global last_list
+    argv = argvs.split("'")
+    if (argv[0] == '') is False:
+        raise TypeError("keywords must be within two apostrophe!('')")
+    keyword = argv[1]
+
+    argvs = argv[2].lstrip()
+    argv = argvs.split(' ')
+
+    if(len(argv) > 0):
+        page = argv[0]
+    else:
+        page = '1'
+
+    if(len(argv) > 1):
+        search_type = argv[1]
+    else:
+        search_type = 'all'
+
+    '''
+    잠깐 여기서 정리좀 할게요
+    만약에 문장이 여러 단어인 경우에는???
+    search 한단어
+    search 여러 단어
+    search '여러 단어 1'
+    search '여러 단어 1 2'
+    search 여러 단어 1
+    search 여러 단어 1 2
+    search 여러 단어 1 얼씨구
+    다음 일곱가지가 나온다.
+    무조건 문장은 ''로 싸게 하자. 그러면 argvs를 자르는 것도 ''를 기준으로 하면 되는 거 아닌가.
+    그러면 다음 몇가지로 압축이 된다.
+    search '문장'
+    search '문장' 1
+    search '문장' 1 2
+    아님 search 문장' 1 2형태로 시켜버릴까.... 흠 아냐 이건 모양이 구려.
+    이러면 쉽지. split만 잘 해주면 되겠네.
+    먼저 '를 기준으로 split을 해주면
+    [0] = ""고
+    [1] = "문장"이고
+    [2] = " 1 2"니까
+    [2].strip().split(' ')해주면 되겠네.
+    '''
+    last_list = dl(gall, page, view_recommend,
+                   search_by=search_type, search_keyword=keyword,
+                   simple_image_name=shortname)
+    last_list.search()
+    last_list.show()
+
+
+@commanddeco
+def get_all_images(argvs):
     '''usage: get_all_image (number of list page)
-    get all images in the list''',
-    f_get_all_images
-))
+get all images in the list'''
+    global last_list
+    argv = argvs.split(' ')
+    if(last_list is None):
+        last_list = dl(gall, no, view_recommend)
+    for page in last_list:
+        imagemode(page.get_image())
+        page.download_image()
 
 
 def exec(string):
     cmd = string.split(' ')[0]
     argv = string[len(cmd) + 1:]
-    book.command[cmd].exec(argv)
-
-
-def new_command(newcmd):
-    if(isinstance(newcmd, command)):
-        book.append(command)
-    else:
-        raise AttributeError('Not a command class!')
+    return book.command[cmd].exec(argv)
+    # for case that it need to return some value...
+    # I actually think that it is highly possible to become a None
 
 
 if(__name__ == "__main__"):
@@ -319,21 +268,18 @@ if(__name__ == "__main__"):
             print("Can't decode unicode. Please retry again...")
             continue
         try:
-            exec(string)
+            ret = exec(string)
+            if(ret is not None):
+                print(ret)
         except KeyError:
             print("There is no command like that! try 'help' to get help.")
-        except IndexError as e:
-            print_error_msg(e)
-            continue
         except ValueError as e:
             print_error_msg(e)
-            continue
         except TypeError as e:
             print_error_msg(e)
-            continue
+        except NoGalleryError as e:
+            print_error_msg(e)
         except ConnectionResetError:
             print("Connection Reset Occured. Please retry again...")
         except Exception as e:
             raise e
-        else:
-            pass
