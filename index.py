@@ -8,12 +8,13 @@ from image import imagemachine, safefilter, smallfilter
 
 book = command_book()
 imagemode = imagemachine([safefilter, smallfilter])
-tiny_img = True
-safe_img = True
+tiny_img = False
+safe_img = False
 shortname = True
 gall = ''
 view_recommend = False
 last_list = None
+index_in_list = 0
 
 
 def commanddeco(func):
