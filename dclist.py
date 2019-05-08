@@ -18,6 +18,7 @@ class dclist:
         self.__search_by = search_by
         self.__search_keyword = search_keyword
         self.__expired = True
+        self.__url = ''
         self.resultpage = []
 
     def __getitem__(self, k):
@@ -77,13 +78,13 @@ class dclist:
         self.get()
 
     def get(self):
-        dclist = 'http://gall.dcinside.com/'
+        dclist = 'http://gall.dcinside.com/' + 'mgallery/' if self.mgalleryCheck else ''
         data = self.__gallery + '&page=' + str(self.__index)
-        listurl = dclist + 'board/lists/?id=' + data
+        self.__url = dclist + 'board/lists/?id=' + data
         if self.__view_recommend is True:
-            listurl += '&exception_mode=recommend'
+            self.__url += '&exception_mode=recommend'
         try:
-            self.__read_url(listurl)
+            self.__read_url(self.__url)
         except AttributeError as e:
             print_error_msg(e)
             return
