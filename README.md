@@ -1,7 +1,8 @@
 # dcwebparser
 cui based parse dcinside   
-_> python3 index.py
-
+* python3 index.py
+* 벌써 몇 년 지난거라 될지는 모르겠지만...
+* 언제 손보긴 해야겠다.
 
 ***
 
